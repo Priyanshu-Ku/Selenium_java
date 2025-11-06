@@ -32,8 +32,7 @@ public class prog4 {
 
         // Upload File
         WebElement FileUpload = driver.findElement(By.name("filename"));
-        FileUpload.sendKeys("C:\\Users\\Priyanshu\\Desktop\\Station Folder\\Apps\\Power Plan.txt"); // Change to a valid
-                                                                                                    // file path
+        FileUpload.sendKeys("C:\\Users\\Priyanshu\\Desktop\\Station Folder\\Apps\\Power Plan.txt"); // Change to a valid file path
 
         // Select Checkboxes
         WebElement checkbox = driver.findElement(By.cssSelector("input[type='checkbox'][value='cb1']"));

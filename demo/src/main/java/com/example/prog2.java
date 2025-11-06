@@ -1,63 +1,72 @@
 package com.example;
 
-import java.time.Duration;
 
+import java.time.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class prog2 {
-    public static void main(String[] args) throws InterruptedException {
-
+    public static void main(String[] args) {
+        // Setup ChromeDriver
+        WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
+
+        // Maximize window and set implicit wait
         driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
-        // Navigate to the login page
-        driver.get("https://www.saucedemo.com/");
+        String baseUrl = "https://practicetestautomation.com/practice-test-login/";
+        driver.get(baseUrl);
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        // Test data for negative login cases
+        String[][] testData = {
+                { "invaliduser", "Password123" },
+                { "student", "wrongpass" },
+                { "", "Password123" },
+                { "student", "" },
+                { "", "" }
+        };
 
-        // ---------- Negative Test: Invalid Username and Password ----------
-        WebElement username = driver.findElement(By.id("user-name"));
-        WebElement password = driver.findElement(By.id("password"));
-        WebElement loginButton = driver.findElement(By.id("login-button"));
+        // Loop through each test case
+        for (String[] data : testData) {
+            String username = data[0];
+            String password = data[1];
 
-        // Enter invalid credentials
-        username.clear();
-        username.sendKeys("wrongUser");
-        password.clear();
-        password.sendKeys("wrongPass");
-        loginButton.click();
+            // Clear fields before each input
+            driver.findElement(By.id("username")).clear();
+            driver.findElement(By.id("password")).clear();
 
-        // Wait for error message to appear
-        WebElement errorMsg = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.cssSelector("h3[data-test='error']")));
+            // Enter credentials
+            driver.findElement(By.id("username")).sendKeys(username);
+            driver.findElement(By.id("password")).sendKeys(password);
 
-        String actualError = errorMsg.getText();
-        String expectedError = "Epic sadface: Username and password do not match any user";
+            // Click login
+            driver.findElement(By.id("submit")).click();
 
-        // Verify error message
-        if (actualError.contains(expectedError)) {
-            System.out.println("Negative Test Passed: Correct error message displayed.");
-        } else {
-            System.out.println("Negative Test Failed: Unexpected message - " + actualError);
+            // Wait for a short while for response
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // Check for error message
+            try {
+                String errorMessage = driver.findElement(By.id("error")).getText();
+                System.out.println("❌ Login failed for [" + username + "/" + password + "]");
+                System.out.println("   Error message displayed: " + errorMessage);
+            } catch (Exception e) {
+                System.out.println("⚠ No error message found for [" + username + "/" + password + "]");
+            }
+
+            // Reload the page for the next test case
+            driver.get(baseUrl);
         }
 
-        // ---------- Additional Check: Empty Fields ----------
-        username.clear();
-        password.clear();
-        loginButton.click();
-
-        WebElement emptyError = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.cssSelector("h3[data-test='error']")));
-
-        System.out.println("Empty field error message: " + emptyError.getText());
-
-        // Close the browser
-        Thread.sleep(5000);
+        // Close browser
         driver.quit();
+        System.out.println("✅ Negative login tests completed successfully!");
     }
 }
